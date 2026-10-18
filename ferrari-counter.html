@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ferrari 100 Pro - Spermien-Zähler</title>
+    
+    <!-- PWA & Mobile Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#f9fbfa">
+    <meta name="description" content="Ferrari 100 Pro Zähler-Tool mit Tastatur- und Touch-Steuerung sowie direkter Wertersetzung auf Tastendruck P.">
+    
+    <!-- Inline SVG Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23f9fbfa'/%3E%3Crect x='70' y='70' width='76' height='372' rx='10' fill='%2355a534'/%3E%3Crect x='210' y='70' width='76' height='372' rx='10' fill='%231257a2'/%3E%3Crect x='210' y='70' width='232' height='82' rx='10' fill='%231b9cdb'/%3E%3Crect x='210' y='206' width='232' height='82' rx='10' fill='%23b0cb0e'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23f9fbfa'/%3E%3Crect x='70' y='70' width='76' height='372' rx='10' fill='%2355a534'/%3E%3Crect x='210' y='70' width='76' height='372' rx='10' fill='%231257a2'/%3E%3Crect x='210' y='70' width='232' height='82' rx='10' fill='%231b9cdb'/%3E%3Crect x='210' y='206' width='232' height='82' rx='10' fill='%23b0cb0e'/%3E%3C/svg%3E">
+
+    <style>
+        :root {
+            --bg-color: #f9fbfa;
+            --text-color: #1e293b;
+            --btn-z: #56a532;
+            --btn-z-hover: #4d942c;
+            --btn-z-shadow: rgba(60, 120, 30, 0.4);
+            
+            --btn-p: #1257a2;
+            --btn-p-hover: #0f4989;
+            --btn-p-shadow: rgba(10, 50, 100, 0.4);
+            
+            --btn-g: #a1aab0;
+            --btn-g-hover: #929da4;
+            --btn-g-shadow: rgba(120, 130, 138, 0.45);
+            
+            --btn-count: #1b9cdb;
+            --btn-count-hover: #1688c0;
+            --btn-count-shadow: rgba(18, 110, 158, 0.45);
+
+            --display-gradient: linear-gradient(to right, #b0cb0e, #55a534);
+            --display-text: #0a2613;
+            --display-label: rgba(15, 52, 27, 0.8);
+            
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            touch-action: manipulation;
+        }
+
+        .app-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            padding-top: calc(8px + env(safe-area-inset-top, 0px));
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+            padding-left: calc(8px + env(safe-area-inset-left, 0px));
+            padding-right: calc(8px + env(safe-area-inset-right, 0px));
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* --- OBERER BEREICH (Z, P, DISPLAY) --- */
+        .top-section {
+            display: grid;
+            grid-template-columns: 65px 65px 1fr;
+            gap: 8px;
+            height: 24vh;
+            min-height: 120px;
+            max-height: 180px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 640px) {
+            .top-section {
+                grid-template-columns: 80px 80px 1fr;
+            }
+        }
+
+        /* --- BUTTON BASIS STILE --- */
+        .tile-btn {
+            border: none;
+            outline: none;
+            border-radius: var(--border-radius);
+            color: #ffffff;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.05s ease, filter 0.1s ease, box-shadow 0.05s ease;
+            position: relative;
+            touch-action: manipulation;
+        }
+
+        .tile-btn:active, .tile-btn.active-press {
+            transform: translateY(4px);
+            box-shadow: none !important;
+            filter: brightness(1.15);
+        }
+
+        /* Spezifische Button-Farben */
+        .btn-z {
+            background-color: var(--btn-z);
+            font-size: 2.2rem;
+            box-shadow: 0 4px 0 var(--btn-z-shadow);
+        }
+        .btn-z:hover { background-color: var(--btn-z-hover); }
+
+        .btn-p {
+            background-color: var(--btn-p);
+            font-size: 2.2rem;
+            box-shadow: 0 4px 0 var(--btn-p-shadow);
+        }
+        .btn-p:hover { background-color: var(--btn-p-hover); }
+
+        /* --- DISPLAY KASTEN --- */
+        .display-box {
+            background: var(--display-gradient);
+            color: var(--display-text);
+            border-radius: var(--border-radius);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            padding: 6px 10px;
+            box-shadow: 0 4px 12px rgba(85, 165, 52, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+            transition: filter 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .display-box.flashing {
+            filter: brightness(1.25);
+            box-shadow: 0 0 0 4px var(--btn-count);
+        }
+
+        /* Subtiles amedes F Wasserzeichen */
+        .display-watermark {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 85px;
+            height: 85px;
+            opacity: 0.22;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .display-values-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .display-col {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .display-col .col-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 900;
+            color: var(--display-label);
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+
+        .display-col .col-val {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 900;
+            font-size: 1.8rem;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            color: var(--display-text);
+        }
+
+        .col-val.konz-underline {
+            text-decoration: underline;
+            text-decoration-thickness: 3px;
+            text-decoration-color: #0f341b;
+        }
+
+        @media (min-width: 640px) {
+            .display-col .col-label { font-size: 13px; }
+            .display-col .col-val { font-size: 2.3rem; }
+        }
+
+        /* Mio Formel Zeile */
+        .mio-summary-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            padding: 3px 12px;
+            margin-top: 4px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .mio-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(10, 38, 19, 0.9);
+        }
+
+        .mio-val {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-weight: 900;
+            font-size: 1.15rem;
+            letter-spacing: 0.5px;
+            background: rgba(255, 255, 255, 0.35);
+            color: #051a0d;
+            padding: 2px 10px;
+            border-radius: 4px;
+        }
+
+        @media (min-width: 640px) {
+            .mio-label { font-size: 13px; }
+            .mio-val { font-size: 1.5rem; }
+        }
+
+        /* --- UNTERER BEREICH (G, A, B, C, D) --- */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        @media (min-width: 640px) {
+            .bottom-section { gap: 12px; }
+        }
+
+        .btn-g {
+            background-color: var(--btn-g);
+            font-size: 1.8rem;
+            box-shadow: 0 4px 0 var(--btn-g-shadow);
+        }
+        .btn-g:hover { background-color: var(--btn-g-hover); }
+
+        .btn-count {
+            background-color: var(--btn-count);
+            font-size: 2.4rem;
+            box-shadow: 0 4px 0 var(--btn-count-shadow);
+        }
+        .btn-count:hover { background-color: var(--btn-count-hover); }
+
+        @media (min-width: 640px) {
+            .btn-g { font-size: 2.5rem; }
+            .btn-count { font-size: 3.2rem; }
+            .btn-z, .btn-p { font-size: 2.6rem; }
+        }
+    </style>
+<script src="/_aistudio-iframe.js?v=6634132a"></script></head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- OBERER DISPLAY BEREICH -->
+        <div class="top-section">
+            <!-- Button Z (Reset) -->
+            <button id="btnZ" class="tile-btn btn-z" aria-label="Reset (Taste Z)" title="Reset (Taste Z)">Z</button>
+            
+            <!-- Button P (Alternative Werte) -->
+            <button id="btnP" class="tile-btn btn-p" aria-label="Ergebnis ersetzen (Taste P)" title="Werte direkt durch alternative Zufallswerte ersetzen (Taste P)">P</button>
+            
+            <!-- Display Box mit Farbverlauf -->
+            <div id="displayBox" class="display-box">
+                <!-- Subtiles transparentes amedes F Wasserzeichen -->
+                <svg class="display-watermark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+                    <rect x="60" y="60" width="80" height="392" rx="6" fill="#55a534" />
+                    <rect x="210" y="60" width="80" height="392" rx="6" fill="#1257a2" />
+                    <rect x="210" y="60" width="242" height="84" rx="6" fill="#1b9cdb" />
+                    <rect x="210" y="204" width="242" height="84" rx="6" fill="#b0cb0e" />
+                </svg>
+
+                <!-- Obere Reihe: Prozentwerte %A, %B, %C, %D und Konzentration -->
+                <div class="display-values-row">
+                    <div class="display-col">
+                        <div class="col-label">%A</div>
+                        <div id="percentA" class="col-val">0%</div>
+                    </div>
+                    <div class="display-col">
+                        <div class="col-label">%B</div>
+                        <div id="percentS" class="col-val">0%</div>
+                    </div>
+                    <div class="display-col">
+                        <div class="col-label">%C</div>
+                        <div id="percentD" class="col-val">0%</div>
+                    </div>
+                    <div class="display-col">
+                        <div class="col-label">%D</div>
+                        <div id="percentF" class="col-val">0%</div>
+                    </div>
+                    <div class="display-col">
+                        <div class="col-label">Konz.</div>
+                        <div id="concentration" class="col-val konz-underline">0</div>
+                    </div>
+                </div>
+
+                <!-- Untere Reihe: Mio-Formel: 5-1 (10) -->
+                <div class="mio-summary-row">
+                    <span class="mio-label">Mio A - Mio B (Gesamt):</span>
+                    <span id="mioSummary" class="mio-val">0-0 (0)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- UNTERER BUTTON BEREICH (G, A, B, C, D) -->
+        <div class="bottom-section">
+            <button id="btnG" class="tile-btn btn-g" aria-label="Gitter Divisor (Taste G)">G1</button>
+            <button id="btnA" class="tile-btn btn-count" aria-label="Kategorie A zählen (Taste A)">A</button>
+            <button id="btnB" class="tile-btn btn-count" aria-label="Kategorie B zählen (Taste S)">B</button>
+            <button id="btnC" class="tile-btn btn-count" aria-label="Kategorie C zählen (Taste D)">C</button>
+            <button id="btnD" class="tile-btn btn-count" aria-label="Kategorie D zählen (Taste F)">D</button>
+        </div>
+
+    </div>
+
+    <!-- PURE JAVASCRIPT LOGIC (KEINE EXTERNEN ABHÄNGIGKEITEN) -->
+    <script>
+        (function() {
+            // State
+            var counts = { a: 0, s: 0, d: 0, f: 0 };
+            var divisor = 1;
+            var display = {
+                percentA: 0,
+                percentS: 0,
+                percentD: 0,
+                percentF: 0,
+                concentration: 0
+            };
+
+            // DOM Elemente
+            var elPercentA = document.getElementById('percentA');
+            var elPercentS = document.getElementById('percentS');
+            var elPercentD = document.getElementById('percentD');
+            var elPercentF = document.getElementById('percentF');
+            var elKonz = document.getElementById('concentration');
+            var elMio = document.getElementById('mioSummary');
+            var elBtnG = document.getElementById('btnG');
+            var elDisplayBox = document.getElementById('displayBox');
+
+            var btnElements = {
+                btnZ: document.getElementById('btnZ'),
+                btnP: document.getElementById('btnP'),
+                btnG: document.getElementById('btnG'),
+                btnA: document.getElementById('btnA'),
+                btnB: document.getElementById('btnB'),
+                btnC: document.getElementById('btnC'),
+                btnD: document.getElementById('btnD')
+            };
+
+            // Haptisches & Visuelles Feedback
+            function triggerFeedback(btnId) {
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(35); } catch(e) {}
+                }
+                var btn = btnElements[btnId];
+                if (btn) {
+                    btn.classList.add('active-press');
+                    setTimeout(function() {
+                        btn.classList.remove('active-press');
+                    }, 110);
+                }
+            }
+
+            // Mio Summary Berechnung: "Mio A - Mio B (Gesamt-Konz)"
+            function updateMioSummary(pA, pS, konz) {
+                var mioA = Math.round(konz * (pA / 100));
+                var mioB = Math.round(konz * (pS / 100));
+                return mioA + '-' + mioB + ' (' + konz + ')';
+            }
+
+            // DOM Rendering
+            function render() {
+                elPercentA.textContent = display.percentA + '%';
+                elPercentS.textContent = display.percentS + '%';
+                elPercentD.textContent = display.percentD + '%';
+                elPercentF.textContent = display.percentF + '%';
+                elKonz.textContent = display.concentration;
+                elMio.textContent = updateMioSummary(display.percentA, display.percentS, display.concentration);
+                elBtnG.textContent = 'G' + divisor;
+            }
+
+            // Standard Prozent-Berechnung
+            function calculateDisplay() {
+                var total = counts.a + counts.s + counts.d + counts.f;
+                var calcP = function(val) {
+                    return total ? Math.round((val / total) * 100) : 0;
+                };
+
+                var pA = calcP(counts.a);
+                var pS = calcP(counts.s);
+                var pD = calcP(counts.d);
+                var pF = calcP(counts.f);
+
+                var sum = pA + pS + pD + pF;
+                if (total > 0 && sum !== 100) {
+                    pA += (100 - sum);
+                }
+
+                display.percentA = pA;
+                display.percentS = pS;
+                display.percentD = pD;
+                display.percentF = pF;
+                display.concentration = Math.round(total / divisor);
+
+                render();
+            }
+
+            // Zähler erhöhen
+            function handleCount(key, btnId) {
+                triggerFeedback(btnId);
+                counts[key]++;
+                calculateDisplay();
+            }
+
+            // Reset (Z)
+            function handleReset() {
+                triggerFeedback('btnZ');
+                counts = { a: 0, s: 0, d: 0, f: 0 };
+                divisor = 1;
+                display = { percentA: 0, percentS: 0, percentD: 0, percentF: 0, concentration: 0 };
+                render();
+            }
+
+            // Divisor erhöhen (G)
+            function handleDivisor() {
+                triggerFeedback('btnG');
+                divisor++;
+                calculateDisplay();
+            }
+
+            // Taste P: Alternative Werte direkt ersetzen (-3 bis +3)
+            function handleReplaceP() {
+                triggerFeedback('btnP');
+                
+                // Flash Effekt
+                elDisplayBox.classList.add('flashing');
+                setTimeout(function() {
+                    elDisplayBox.classList.remove('flashing');
+                }, 200);
+
+                function getVariation(val) {
+                    var diff = Math.floor(Math.random() * 7) - 3; // -3 bis +3
+                    return Math.max(0, val + diff);
+                }
+
+                display.percentA = getVariation(display.percentA);
+                display.percentS = getVariation(display.percentS);
+                display.percentD = getVariation(display.percentD);
+                display.percentF = getVariation(display.percentF);
+                display.concentration = getVariation(display.concentration);
+
+                render();
+            }
+
+            // Click & Touch Event Listener
+            btnElements.btnZ.addEventListener('click', handleReset);
+            btnElements.btnP.addEventListener('click', handleReplaceP);
+            btnElements.btnG.addEventListener('click', handleDivisor);
+            btnElements.btnA.addEventListener('click', function() { handleCount('a', 'btnA'); });
+            btnElements.btnB.addEventListener('click', function() { handleCount('s', 'btnB'); });
+            btnElements.btnC.addEventListener('click', function() { handleCount('d', 'btnC'); });
+            btnElements.btnD.addEventListener('click', function() { handleCount('f', 'btnD'); });
+
+            // Tastatur Shortcuts (A, S, D, F, Z, P, G)
+            window.addEventListener('keydown', function(e) {
+                if (['INPUT', 'TEXTAREA'].indexOf((e.target && e.target.tagName) || '') !== -1) return;
+                
+                var key = e.key.toLowerCase();
+                if (key === 'a') handleCount('a', 'btnA');
+                else if (key === 's') handleCount('s', 'btnB');
+                else if (key === 'd') handleCount('d', 'btnC');
+                else if (key === 'f') handleCount('f', 'btnD');
+                else if (key === 'z') handleReset();
+                else if (key === 'p') handleReplaceP();
+                else if (key === 'g') handleDivisor();
+            });
+
+            // ServiceWorker optional registrieren (wenn über Webserver gehostet)
+            if ('serviceWorker' in navigator && window.location.protocol.indexOf('http') === 0) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js').catch(function() {});
+                });
+            }
+
+            // Initiales Rendern
+            render();
+        })();
+    </script>
+</body>
+</html>
