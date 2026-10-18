@@ -1,0 +1,21 @@
+{
+  "name": "Ferrari 100 Pro",
+  "short_name": "Ferrari 100",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f9fbfa",
+  "theme_color": "#1b9cdb",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}
