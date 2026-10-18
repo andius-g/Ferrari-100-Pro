@@ -1,4 +1,6 @@
 {
+  "id": "/ferrari100-app/",
+  "scope": "./",
   "name": "Ferrari 100 Pro",
   "short_name": "Ferrari 100",
   "start_url": "./index.html",
